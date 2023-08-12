@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<root>
+<root main_tree_to_xecute="BehaviorTree">
     <TreeNodesModel>
         <Action ID="AlwaysRunning"/>
         <Action ID="BlackboardToStatus">
@@ -23,6 +23,10 @@
         <Decorator ID="Oneshot">
             <input_port default="true" name="only_success">set to false if oneshot both SUCCESS or FAILURE child</input_port>
         </Decorator>
+        <Control ID="ParallelPolicy">
+            <input_port default="SuccessOnAll" name="policy">'SuccessOnAll', 'SuccessOnOne', 'SuccessOnSelected'</input_port>
+            <input_port name="selected_child">child index(start with 0) to selected in policy 'SuccessOnSelected'</input_port>
+        </Control>
         <Decorator ID="PassThrough"/>
         <Action ID="Periodic">
             <input_port name="n">period value (in ticks)</input_port>
