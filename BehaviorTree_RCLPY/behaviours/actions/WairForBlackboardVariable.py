@@ -1,5 +1,3 @@
-import typing
-from py_trees import common
 from py_trees.behaviours import WaitForBlackboardVariable as pyWaitForBlackboardVariable
 
 class WaitForBlackboardVariable(pyWaitForBlackboardVariable):

@@ -18,9 +18,9 @@ class TickCounter(pyTickCounter):
     ):
         if isinstance(duration, str):
             try:
-                duration = float(duration)
+                duration = int(duration)
             except ValueError:
-                raise ValueError(f"input string {duration} can't convert to type 'Float'")
+                raise ValueError(f"input string {duration} can't convert to type 'int'")
         elif isinstance(duration, (int, float)):
             duration = int(duration)
         else:

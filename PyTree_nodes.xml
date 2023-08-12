@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<root main_tree_to_xecute="BehaviorTree">
+<root>
     <TreeNodesModel>
         <Action ID="AlwaysRunning"/>
         <Action ID="BlackboardToStatus">
@@ -43,7 +43,7 @@
             <input_port name="queue">list of status values to cycle through</input_port>
         </Action>
         <Decorator ID="StatusToBlackboard">
-            <input_port default="name of the blackboard variable" name="variable_name">variable_name to assign STATUS value</input_port>
+            <input_port name="variable_name">variable_name to assign STATUS value</input_port>
         </Decorator>
         <Condition ID="SuccessEveryN">
             <input_port name="n">trigger success on every n'th tick</input_port>

@@ -1,5 +1,3 @@
-import typing
-from py_trees import common
 from py_trees.behaviours import CheckBlackboardVariableExists as pyCheckBlackboardVariableExists
 
 class CheckBlackboardVariableExists(pyCheckBlackboardVariableExists):

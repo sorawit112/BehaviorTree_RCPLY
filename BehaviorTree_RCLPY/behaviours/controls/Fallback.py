@@ -6,5 +6,6 @@ class Fallback(Selector):
     def __init__(
         self, 
         name: str, 
-        children: typing.Optional[typing.List[Behaviour]] = None):
+        children: typing.Optional[typing.List[Behaviour]] = None
+    ):
         super().__init__(name, False, children)

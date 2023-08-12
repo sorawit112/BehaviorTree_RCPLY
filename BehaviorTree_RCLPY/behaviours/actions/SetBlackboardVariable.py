@@ -12,15 +12,6 @@ class SetBlackboardVariable(pySetBlackboardVariable):
     ):
         if isinstance(variable_value, str):
             if variable_value.startswith("{") and variable_value.endswith("}"):
-                # key = variable_value[1:-1]
-                # self.blackboard = self.attach_blackboard_client()
-                # self.blackboard.register_key(key=key, access=common.Access.READ)        
-                # try:
-                #     variable_value = self.blackboard.get(key)
-                # except AttributeError as e:
-                #     raise AttributeError(e)
-                # except KeyError as e:
-                #     raise KeyError(e)
                 raise ValueError(f"input string {variable_value} not supported remapping key")
             else:
                 try:
