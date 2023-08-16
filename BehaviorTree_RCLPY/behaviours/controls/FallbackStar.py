@@ -2,7 +2,7 @@ import typing
 from py_trees.behaviour import Behaviour
 from py_trees.composites import Selector
 
-class Fallback(Selector):
+class FallbackStar(Selector):
     def __init__(
         self, 
         name: str, 

@@ -1,5 +1,5 @@
 import typing
-from . import SetBlackboardVariable
+from .SetBlackboardVariable import SetBlackboardVariable
 
 class SetBlackboard(SetBlackboardVariable):
     def __init__(

@@ -9,7 +9,7 @@ commmon_status_mapping = {
 }
  
 
-class TickCounter(pySuccessEveryN):
+class SuccessEveryN(pySuccessEveryN):
     def __init__(self, name: str, n: typing.Union[str, int, float]):
         if isinstance(duration, str):
             try:
