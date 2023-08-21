@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'BehaviorTree_RCLPY'
+package_name = 'behaviour_tree_rclpy'
 
 setup(
     name=package_name,
@@ -10,6 +10,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, ['resource/py_tree_nodes.xml']),
+        ('share/' + package_name, ['resource/default_tree.xml'])
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,6 +22,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'bt_node = behaviour_tree_rclpy.bt_node:main',
         ],
     },
 )
