@@ -7,7 +7,7 @@ from py_trees.behaviour import Behaviour
 from behaviour_tree_rclpy.behaviours.actions import AlwaysFailure, \
     AlwaysRunning, AlwaysSuccess, BlackboardToStatus, Periodic, \
     SetBlackboard, SetBlackboardVariable, StatusQueue, TickCounter, \
-    Timer, UnsetBlackboardVariable, WaitForBlackboardVariable
+    Timer, UnsetBlackboardVariable, WaitForBlackboardVariable, TriggerService
 from behaviour_tree_rclpy.behaviours.conditions import CheckBlackboardVariableExists, CheckBlackboardVariableValue, SuccessEveryN
 from behaviour_tree_rclpy.behaviours.controls import Fallback, FallbackStar, Parallel, ParallelPolicy, Sequence, SequenceStar
 from behaviour_tree_rclpy.behaviours.decorators import Condition, Count, FailureIsRunning, FailureIsSuccess, \
@@ -30,6 +30,7 @@ action_type_mapping = {
     'Timer' : Timer.Timer,
     'UnsetBlakboardVariable' : UnsetBlackboardVariable.UnsetBlackboardVariable,
     'WaitForBlackboardVariable' : WaitForBlackboardVariable.WaitForBlackboardVariable,
+    'TriggerService' : TriggerService.TriggerService
 }
 
 condition_type_mapping = {
@@ -176,7 +177,8 @@ if __name__=="__main__":
     import py_trees, time
     
     factory = BehaviourTreeFactory()
-    behavior_tree_root = factory.load_behavior_tree_from_xml()
+    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_trigger_service.xml'
+    behavior_tree_root = factory.load_behavior_tree_from_xml(xml)
 
     py_trees.logging.level = py_trees.logging.Level.DEBUG
     

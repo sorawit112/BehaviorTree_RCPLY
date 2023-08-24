@@ -1,5 +1,16 @@
 <?xml version="1.0"?>
-<root>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Fallback name="Fallback 11">
+            <Sequence name="Sequence xx">
+                <Action ID="TriggerService" name="TriggerService xy" server_timeout="1.3" service_topic="trigger"/>
+                <Action ID="AlwaysRunning" name="AlwaysRunning xz"/>
+            </Sequence>
+            <Action ID="AlwaysRunning" name="AlwaysRunning aa"/>
+        </Fallback>
+    </BehaviorTree>
+    <!-- ////////// -->
     <TreeNodesModel>
         <Action ID="AlwaysRunning"/>
         <Action ID="BlackboardToStatus">
