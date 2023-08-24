@@ -2,12 +2,14 @@ import rclpy
 
 from rclpy.task import Future
 from rclpy.node import Node
+from rclpy.callback_groups import ReentrantCallbackGroup, MutuallyExclusiveCallbackGroup
 from enum import Enum
 from typing import Union, Callable
 import py_trees
 from py_trees.trees import BehaviourTree
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status as NodeStatus
+from py_trees.common import Access
 from behaviour_tree_rclpy.bt_factory import BehaviourTreeFactory
 
 class BtStatus(Enum):
@@ -17,46 +19,41 @@ class BtStatus(Enum):
 
 
 class BehaviourTreeEngine:
-    def __init__(self):
+    module_name = 'engine'
+    def __init__(self, node:Node):
+        self.node = node
         self.factory_ = BehaviourTreeFactory()
+        self.blackboard = self.initialize_blackboard()
         
-    async def run(
-        self,
-        node: Node,
-        tree: BehaviourTree, 
-        onloop: Callable, 
-        cancel_request: Callable, 
-        done_cb: Callable,
-    ):
+        self.node.get_logger().info('[{}] initialize'.format(self.module_name))
         
-        bt_result_future = Future()
-        bt_result_future.add_done_callback(done_cb)
+    def initialize_blackboard(self):
+        blackboard = py_trees.blackboard.Client(name="engine")
+        blackboard.register_key('node', access=Access.EXCLUSIVE_WRITE)
+        blackboard.register_key('bt_loop_duration', access=Access.EXCLUSIVE_WRITE)
+        blackboard.register_key('service_cb_group', access=Access.EXCLUSIVE_WRITE)
+        blackboard.register_key('action_cb_group', access=Access.EXCLUSIVE_WRITE)
+        blackboard.node = self.node
+        blackboard.bt_loop_duration = self.node.bt_loop_duration
+        blackboard.service_cb_group = MutuallyExclusiveCallbackGroup()
+        blackboard.action_cb_group = MutuallyExclusiveCallbackGroup()
         
+        return blackboard
+        
+    async def run(self, tree: BehaviourTree):
         result = NodeStatus.RUNNING
         
         try:
-            if rclpy.ok() and node.context.ok() and result == NodeStatus.RUNNING:
-                if cancel_request():
-                    self.halt_all_actions(tree)
-                    return BtStatus.CANCELED
-
-                tree.tick()
-                node.get_logger().info('\n{}'.format(
-                    py_trees.display.unicode_tree(root=tree.root, show_status=True)))
-                
-                result = tree.root.status
-                
-                onloop()
+            tree.tick()
+            self.node.get_logger().info('\n{}'.format(
+                py_trees.display.unicode_tree(root=tree.root, show_status=True)))
+            
+            result = tree.root.status
     
         except Exception as e:
-            node.get_logger().error("Behavior tree threw exception: {}. Exiting with failure.".format(e))
-
-            bt_result_future.set_result(BtStatus.FAILED)
-        
-        if result != NodeStatus.RUNNING:
-            result_future = BtStatus.SUCCEED if result == NodeStatus.SUCCESS else BtStatus.FAILED
-            bt_result_future.set_result(result_future)
-        
+            self.node.get_logger().error(
+                "[{}] Behavior tree threw exception: {}. Exiting with failure.".format(self.module_name,e))
+                
         return result
         
     def create_tree_from_xml_file(self, xml_file:str):
@@ -69,6 +66,7 @@ class BehaviourTreeEngine:
         :rtype: BehaviourTree
         """
         root_node = self.factory_.load_behavior_tree_from_xml(xml_file)
+        root_node.setup()
         return BehaviourTree(root_node)
     
     def halt_all_actions(self, tree: Union[BehaviourTree, Behaviour]):
