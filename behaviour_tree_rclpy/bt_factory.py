@@ -3,6 +3,7 @@ import typing
 import xml.etree.ElementTree as ET
 
 from py_trees.trees import BehaviourTree
+from py_trees.behaviour import Behaviour
 from behaviour_tree_rclpy.behaviours.actions import AlwaysFailure, \
     AlwaysRunning, AlwaysSuccess, BlackboardToStatus, Periodic, \
     SetBlackboard, SetBlackboardVariable, StatusQueue, TickCounter, \
@@ -108,7 +109,11 @@ class BehaviourTreeFactory:
             print(er)
             return None, node_type
         
-    def create_node(self, xml_element:ET.Element, sub_trees:dict):
+    def create_node(
+        self, 
+        xml_element:ET.Element, 
+        sub_trees:dict
+    ) -> Behaviour:
         node_type = xml_element.tag
         node = None
 
@@ -132,19 +137,22 @@ class BehaviourTreeFactory:
                     
             if len(children) > 0:
                 if node_type in decorator_type_mapping:
-                    return node(children[0], kwargs=xml_element.attrib)
+                    return node(children[0], xml_element.attrib)
                 elif node_type in control_type_mapping:
-                    return node(children, kwargs=xml_element.attrib)
+                    return node(children, xml_element.attrib)
                 elif node_type in action_type_mapping or node_type in condition_type_mapping:
                     raise ValueError(f"{node_type} can't have child : {children}")
                 else:
                     raise KeyError(f"Can't mapping key:{node_type}")
             else:
-                return node(kwargs=xml_element.attrib)
+                return node(xml_element.attrib)
 
         return node        
         
-    def load_behavior_tree_from_xml(self, xml_file_path=None):
+    def load_behavior_tree_from_xml(
+        self, 
+        xml_file_path:typing.Optional[str]=None
+    ) -> typing.Optional[Behaviour]:
         if not xml_file_path:
             xml_file_path = DEFAULT_XML
             
@@ -163,7 +171,6 @@ class BehaviourTreeFactory:
                 return self.create_node(element, sub_trees)
 
         return None
-    
     
 if __name__=="__main__":
     import py_trees, time

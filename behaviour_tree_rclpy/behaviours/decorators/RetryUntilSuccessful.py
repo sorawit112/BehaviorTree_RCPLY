@@ -6,7 +6,7 @@ class RetryUntilSuccessful(Retry):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
         """
         The Default groot := RetryUntilSuccessful
@@ -18,9 +18,8 @@ class RetryUntilSuccessful(Retry):
             name: the decorator name
             num_attemps: maximum retry or will return FAILURE
         """
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'RetryUntilSuccessful'
-        num_attemps: typing.Union[str, int] = kwargs['num_attemps']
+        name: str = attr['name'] if 'name' in attr.keys() else 'RetryUntilSuccessful'
+        num_attemps: typing.Union[str, int] = attr['num_attemps']
         if isinstance(num_attemps, str):
             try:
                 num_attemps = int(num_attemps)

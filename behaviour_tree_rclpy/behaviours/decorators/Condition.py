@@ -13,11 +13,10 @@ class Condition(pyCondition):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Condition'
-        status: typing.Union[str, Status] = kwargs['status']
+        name: str = attr['name'] if 'name' in attr.keys() else 'Condition'
+        status: typing.Union[str, Status] = attr['status']
         if isinstance(status, str):    
             try:
                 status = commmon_status_mapping[status.lower().replace(' ', '')]

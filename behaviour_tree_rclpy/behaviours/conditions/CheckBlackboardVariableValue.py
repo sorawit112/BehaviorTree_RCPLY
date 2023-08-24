@@ -10,12 +10,11 @@ operator_mapping = {
 }
 
 class CheckBlackboardVariableValue(pyCheckBlackboardVariableValue):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'CheckBlackboardVariableValue'
-        operator: typing.Union[str, common.ComparisonExpression] = kwargs['operator']
-        value: typing.Any = kwargs['value']
-        variable_name: str = kwargs['variable_name']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'CheckBlackboardVariableValue'
+        operator: typing.Union[str, common.ComparisonExpression] = attr['operator']
+        value: typing.Any = attr['value']
+        variable_name: str = attr['variable_name']
         if not isinstance(variable_name, str):
             raise TypeError(f"variable_name type:{type(variable_name)} not supported")
         

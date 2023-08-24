@@ -6,8 +6,7 @@ class PassThrough(pyPassThrough):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'PassThrough'
+        name: str = attr['name'] if 'name' in attr.keys() else 'PassThrough'
         super().__init__(name, child)

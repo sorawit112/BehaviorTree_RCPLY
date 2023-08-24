@@ -5,7 +5,7 @@ from py_trees.decorators import Condition
 
 class KeepRunningUntilFailure(Condition):
     """
-    Encadef __init__(
+    def __init__(
         self, 
         name: str, 
         child: Behaviour, 
@@ -18,7 +18,7 @@ class KeepRunningUntilFailure(Condition):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
         """
         The Default groot := KeepRunningUntilFailure
@@ -28,6 +28,5 @@ class KeepRunningUntilFailure(Condition):
             name: the decorator name
             child: the child to be decorated
         """
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'KeepRunningUntilFailure'
+        name: str = attr['name'] if 'name' in attr.keys() else 'KeepRunningUntilFailure'
         super().__init__(name, child, Status.FAILURE)

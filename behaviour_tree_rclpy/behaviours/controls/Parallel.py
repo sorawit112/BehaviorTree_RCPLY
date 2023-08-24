@@ -18,7 +18,7 @@ class Parallel(Composite):
     def __init__(
         self, 
         children: typing.Optional[typing.List[Behaviour]],
-        **kwargs,
+        attr:dict={},
     ):
         """
         Initialise the behaviour with name, policy and a list of children.
@@ -29,10 +29,9 @@ class Parallel(Composite):
             success_threshold: minimum child success to return SUCCESS
             children: list of children to add
         """
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Parallel'
-        failure_threshold: typing.Union[str, int] = kwargs['failure_threshold']
-        success_threshold: typing.Union[str, int] = kwargs['success_threshold']
+        name: str = attr['name'] if 'name' in attr.keys() else 'Parallel'
+        failure_threshold: typing.Union[str, int] = attr['failure_threshold']
+        success_threshold: typing.Union[str, int] = attr['success_threshold']
         
         if isinstance(failure_threshold, str):
             try:

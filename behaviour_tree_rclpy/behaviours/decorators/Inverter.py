@@ -6,8 +6,7 @@ class Inverter(pyInverter):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr: dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Inverter'
+        name: str = attr['name'] if 'name' in attr.keys() else 'Inverter'
         super().__init__(name, child)

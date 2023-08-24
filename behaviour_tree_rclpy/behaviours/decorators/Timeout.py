@@ -7,7 +7,7 @@ class Timeout(pyTimeout):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
         """
         Wrapper of py_trees.decorators.Timeout with use argument from groot
@@ -17,9 +17,8 @@ class Timeout(pyTimeout):
             name: the decorator name
             msec: timeout length in milliseconds
         """
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Timeout'
-        msec: typing.Union[str, int] = kwargs['msec']
+        name: str = attr['name'] if 'name' in attr.keys() else 'Timeout'
+        msec: typing.Union[str, int] = attr['msec']
         if isinstance(msec, str):
             try:
                 msec = float(msec)/1000.0

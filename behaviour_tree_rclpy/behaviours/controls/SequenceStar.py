@@ -6,8 +6,7 @@ class SequenceStar(pySequence):
     def __init__(
         self, 
         children: typing.Optional[typing.List[Behaviour]],
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'SequenceStar'
+        name: str = attr['name'] if 'name' in attr.keys() else 'SequenceStar'
         super().__init__(name, True, children)

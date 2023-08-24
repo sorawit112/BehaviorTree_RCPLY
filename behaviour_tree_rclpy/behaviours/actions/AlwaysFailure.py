@@ -2,9 +2,8 @@ from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 class AlwaysFailure(Behaviour):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'AlwaysFailure'
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'AlwaysFailure'
         super(AlwaysFailure, self).__init__(name)
 
     def update(self) -> Status:

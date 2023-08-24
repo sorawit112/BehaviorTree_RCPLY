@@ -5,10 +5,9 @@ class StatusToBlackboard(pyStatusToBlackboard):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'RunningIsSuccess'
-        variable_name: str = kwargs['variable_name']
+        name: str = attr['name'] if 'name' in attr.keys() else 'RunningIsSuccess'
+        variable_name: str = attr['variable_name']
         super().__init__(name, child, variable_name)
 

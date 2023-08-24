@@ -2,10 +2,9 @@ import typing
 from py_trees.behaviours import Periodic as pyPeriodic
 
 class Periodic(pyPeriodic):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Periodic'
-        n: typing.Union[int, str] = kwargs['n']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'Periodic'
+        n: typing.Union[int, str] = attr['n']
         
         if isinstance(n, str):
             try:

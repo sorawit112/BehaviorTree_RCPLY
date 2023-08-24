@@ -10,10 +10,9 @@ commmon_status_mapping = {
  
 
 class Timer(pyTimer):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Timer'
-        duration: typing.Union[str, float] = kwargs['duration']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'Timer'
+        duration: typing.Union[str, float] = attr['duration']
         if isinstance(duration, str):
             try:
                 duration = float(duration)

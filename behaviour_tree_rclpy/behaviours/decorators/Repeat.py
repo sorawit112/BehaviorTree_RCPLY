@@ -7,11 +7,10 @@ class Repeat(pyRepeat):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Repeat'
-        num_cycles: typing.Union[str, int] = kwargs['num_cycles']
+        name: str = attr['name'] if 'name' in attr.keys() else 'Repeat'
+        num_cycles: typing.Union[str, int] = attr['num_cycles']
         if isinstance(num_cycles, str):
             try:
                 num_cycles = int(num_cycles)

@@ -13,12 +13,11 @@ class ParallelPolicy(Parallel):
     def __init__(
         self, 
         children: typing.Optional[typing.List[Behaviour]],
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'ParallelPolicy'
-        policy: typing.Union[str, common.ParallelPolicy.Base] = kwargs['policy'].replace(' ', '')
-        selected_child: typing.Optional[str] = kwargs['selected_child']
+        name: str = attr['name'] if 'name' in attr.keys() else 'ParallelPolicy'
+        policy: typing.Union[str, common.ParallelPolicy.Base] = attr['policy'].replace(' ', '')
+        selected_child: typing.Optional[str] = attr['selected_child']
         if isinstance(policy, str):
             try:                
                 if policy == 'SuccessOnSelected':

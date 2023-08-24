@@ -10,10 +10,9 @@ commmon_status_mapping = {
  
 
 class SuccessEveryN(pySuccessEveryN):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'SuccessEveryN'
-        n: typing.Union[str, int, float] = kwargs['n']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'SuccessEveryN'
+        n: typing.Union[str, int, float] = attr['n']
         if isinstance(n, str):
             try:
                 n = int(n)

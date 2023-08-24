@@ -6,8 +6,7 @@ class Fallback(Selector):
     def __init__(
         self, 
         children: typing.Optional[typing.List[Behaviour]],
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'Fallback'
+        name: str = attr['name'] if 'name' in attr.keys() else 'Fallback'
         super().__init__(name, False, children)

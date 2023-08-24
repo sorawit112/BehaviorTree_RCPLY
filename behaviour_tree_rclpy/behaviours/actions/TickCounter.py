@@ -10,11 +10,10 @@ commmon_status_mapping = {
  
 
 class TickCounter(pyTickCounter):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'TickCounter'
-        duration: typing.Union[str, int] = kwargs['duration']
-        completion_status: typing.Union[str, common.Status] = kwargs['completion_status']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'TickCounter'
+        duration: typing.Union[str, int] = attr['duration']
+        completion_status: typing.Union[str, common.Status] = attr['completion_status']
         
         if isinstance(duration, str):
             try:

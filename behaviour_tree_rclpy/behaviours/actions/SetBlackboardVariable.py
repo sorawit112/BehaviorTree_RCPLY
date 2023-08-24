@@ -3,12 +3,11 @@ from py_trees import common
 from py_trees.behaviours import SetBlackboardVariable as pySetBlackboardVariable
 
 class SetBlackboardVariable(pySetBlackboardVariable):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'SetBlackBoardVariable'
-        variable_name: str = kwargs['variable_name']
-        variable_value: typing.Any = kwargs['variable_value']
-        overwrite: typing.Union[str, bool] = kwargs['overwrite']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'SetBlackBoardVariable'
+        variable_name: str = attr['variable_name']
+        variable_value: typing.Any = attr['variable_value']
+        overwrite: typing.Union[str, bool] = attr['overwrite']
         
         if isinstance(variable_value, str):
             if variable_value.startswith("{") and variable_value.endswith("}"):

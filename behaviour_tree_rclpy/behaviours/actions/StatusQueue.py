@@ -10,11 +10,10 @@ commmon_status_mapping = {
  
 
 class StatusQueue(pyStatusQueue):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'StatusQueue'
-        queue: typing.Union[str, typing.List[common.Status]] = kwargs['queue']
-        eventually: typing.Union[str, common.Status, None] = kwargs['eventually']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'StatusQueue'
+        queue: typing.Union[str, typing.List[common.Status]] = attr['queue']
+        eventually: typing.Union[str, common.Status, None] = attr['eventually']
         if isinstance(queue, str):
             split_queue = queue.split(',')
             queue = []

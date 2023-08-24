@@ -2,15 +2,14 @@ import typing
 from .SetBlackboardVariable import SetBlackboardVariable
 
 class SetBlackboard(SetBlackboardVariable):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'SetBlackboard'
-        variable_name: str = kwargs['output_key']
-        variable_value: typing.Any = kwargs['value']
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'SetBlackboard'
+        variable_name: str = attr['output_key']
+        variable_value: typing.Any = attr['value']
         
-        kwargs['name'] = name
-        kwargs['variable_name'] = variable_name
-        kwargs['variable_value'] = variable_value
-        kwargs['overwrite'] = True
+        attr['name'] = name
+        attr['variable_name'] = variable_name
+        attr['variable_value'] = variable_value
+        attr['overwrite'] = True
         
-        super().__init__(kwargs=kwargs)
+        super().__init__(attr=attr)

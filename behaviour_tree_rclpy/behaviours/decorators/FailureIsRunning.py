@@ -6,8 +6,7 @@ class FailureIsRunning(pyFailureIsRunning):
    def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'FailureIsRunning'
+        name: str = attr['name'] if 'name' in attr.keys() else 'FailureIsRunning'
         super().__init__(name, child)

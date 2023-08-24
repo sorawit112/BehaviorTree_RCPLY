@@ -2,9 +2,8 @@ from py_trees.behaviour import Behaviour
 from py_trees.common import Status
 
 class AlwaysRunning(Behaviour):
-    def __init__(self, **kwargs):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'AlwaysRunning'
+    def __init__(self, attr:dict={}):
+        name: str = attr['name'] if 'name' in attr.keys() else 'AlwaysRunning'
         super(AlwaysRunning, self).__init__(name)
 
     def update(self) -> Status:

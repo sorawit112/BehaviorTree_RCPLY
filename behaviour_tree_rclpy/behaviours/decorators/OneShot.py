@@ -7,11 +7,10 @@ class OneShot(pyOneShot):
     def __init__(
         self, 
         child: Behaviour,
-        **kwargs,
+        attr:dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['name'] if 'name' in kwargs.keys() else 'OneShot'
-        only_success: typing.Union[str, bool] = kwargs['only_success']
+        name: str = attr['name'] if 'name' in attr.keys() else 'OneShot'
+        only_success: typing.Union[str, bool] = attr['only_success']
         if isinstance(only_success, str):
             if only_success.lower() in ['true', 'false']:
                 only_success = bool(only_success)

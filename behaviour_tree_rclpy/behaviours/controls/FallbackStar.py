@@ -6,8 +6,7 @@ class FallbackStar(Selector):
     def __init__(
         self, 
         children: typing.Optional[typing.List[Behaviour]],
-        **kwargs,
+        attr: dict={},
     ):
-        kwargs = kwargs['kwargs']
-        name: str = kwargs['ID']
+        name: str = attr['name'] if 'name' in attr.keys() else 'FallbackStar'
         super().__init__(name, True, children)
