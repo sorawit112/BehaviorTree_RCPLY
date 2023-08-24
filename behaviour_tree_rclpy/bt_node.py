@@ -53,7 +53,7 @@ class BehaviourTreeNode(Node):
 def main():
     rclpy.init()
     
-    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_trigger_service.xml'
+    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_behaviour.xml'
     node = BehaviourTreeNode(xml)
     try:
         rclpy.spin(node)

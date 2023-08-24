@@ -177,7 +177,7 @@ if __name__=="__main__":
     import py_trees, time
     
     factory = BehaviourTreeFactory()
-    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_trigger_service.xml'
+    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_behaviour.xml'
     behavior_tree_root = factory.load_behavior_tree_from_xml(xml)
 
     py_trees.logging.level = py_trees.logging.Level.DEBUG
