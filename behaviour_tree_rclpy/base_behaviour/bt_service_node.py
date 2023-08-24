@@ -49,10 +49,10 @@ class BtServiceNode(Behaviour, ABC):
             '[{}] Waiting for {} service]'.format(self.name, self.service_topic))
         
         if not self.service_client.wait_for_service(1.0):
-            self.node.get_logger().error(
+            self.node.get_logger().debug(
                 '[{}] {} service server not available after waiting for 1 s'.format(self.name, self.service_topic))
 
-            raise RuntimeError('Service server {} not available'.format(self.service_topic))
+            raise RuntimeError('Service server not available')
         
         self.node.get_logger().info('[{}] BtServiceNode initialized]'.format(self.name))
         
@@ -90,7 +90,7 @@ class BtServiceNode(Behaviour, ABC):
         remaining_time = self.server_timeout - elapsed_time
         
         if remaining_time > 0:
-            timeout = remaining_time if self.server_timeout > remaining_time else self.server_timeout
+            timeout = remaining_time if self.bt_loop_duration > remaining_time else self.bt_loop_duration
             self.node.executor.spin_once(timeout)
             if self.future_result.done():
                 self.request_sent = False
@@ -98,11 +98,14 @@ class BtServiceNode(Behaviour, ABC):
                 return status
             else:
                 self.on_wait_for_result()
-                return Status.RUNNING
+                elapsed_time = (self.node.get_clock().now() - self.sent_time).nanoseconds*to_sec
+                if elapsed_time < self.server_timeout:
+                    return Status.RUNNING
         
         self.request_sent = False
-        self.node.get_logger().warn(
-            '[{}] Node timed out while executing service call to {}'.format(self.name, self.service_topic))
+        self.feedback_message = f"server_timeout : {self.server_timeout} sec"
+        self.node.get_logger().debug(
+            '[{}] server_timeout while waiting for result from {}'.format(self.name, self.service_topic))
         return Status.FAILURE
     
     @abstractmethod
@@ -110,8 +113,7 @@ class BtServiceNode(Behaviour, ABC):
         return Status.SUCCESS
     
     @abstractmethod
-    def on_wait_for_result(self, feedback_message=""):
-        
+    def on_wait_for_result(self, feedback_message=""): 
         self.feedback_message = f"wait for result : {feedback_message}"
     
     def terminate(self, new_status: Status) -> None:

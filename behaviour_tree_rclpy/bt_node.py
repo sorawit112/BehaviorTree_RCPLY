@@ -5,6 +5,7 @@ from rclpy.node import Node
 from py_trees.common import Status as NodeStatus
 from behaviour_tree_rclpy.behavior_tree_engine import BehaviourTreeEngine, BtStatus
 from behaviour_tree_rclpy.bt_factory import DEFAULT_XML
+from ament_index_python import get_package_share_directory
 
 class BehaviourTreeNode(Node):
     def __init__(self, bt_xml=None) -> None:
@@ -14,6 +15,7 @@ class BehaviourTreeNode(Node):
         
         self.bt_ = BehaviourTreeEngine(self)
         self.tree = self.bt_.create_tree_from_xml_file(self.bt_xml_file)
+        self.bt_.setup_all_actions(self.tree)
         
         self.execute_timer = self.create_timer(self.bt_loop_duration, self.execute)
         
@@ -33,34 +35,37 @@ class BehaviourTreeNode(Node):
             raise ValueError('Invalid behavior_tree Result : {}'.format(result))
         
     async def execute(self):
-        self.get_logger().info('tick')
+        self.get_logger().debug('executing')
         if rclpy.ok() and self.context.ok() and not self.cancel_request():
             result = await self.bt_.run(self.tree)
             self.onloop()
-            
         if result != NodeStatus.RUNNING:
             self.bt_result_cb(result)
         
     def onloop(self):
-        self.get_logger().info('onloop :)')
+        self.get_logger().debug('onloop :)')
         
     def cancel_request(self):
-        self.get_logger().info('cancel_request()')
+        self.get_logger().debug('cancel_request()')
         return False
     
     
 def main():
     rclpy.init()
     
-    node = BehaviourTreeNode()
-    
+    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_trigger_service.xml'
+    node = BehaviourTreeNode(xml)
     try:
         rclpy.spin(node)
+        
     except (KeyboardInterrupt, Exception) as e:
         print(e)
         node.destroy_node()
     finally:
-        rclpy.shutdown()
+        if rclpy.ok():
+            rclpy.shutdown()
+        else:
+            print('\n\nrclpy already shutdown')
         
 
 if __name__=="__main__":
