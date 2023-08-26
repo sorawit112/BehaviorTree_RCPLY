@@ -12,6 +12,8 @@ from py_trees.common import Status as NodeStatus
 from py_trees.common import Access
 from behaviour_tree_rclpy.bt_factory import BehaviourTreeFactory
 
+to_sec = 1e-9
+
 class BtStatus(Enum):
     SUCCEED = 0
     CANCELED = 1
@@ -33,6 +35,7 @@ class BehaviourTreeEngine:
         blackboard.register_key('bt_loop_duration', access=Access.EXCLUSIVE_WRITE)
         blackboard.register_key('service_cb_group', access=Access.EXCLUSIVE_WRITE)
         blackboard.register_key('action_cb_group', access=Access.EXCLUSIVE_WRITE)
+        blackboard.register_key('tick_time', access=Access.EXCLUSIVE_WRITE)
         blackboard.node = self.node
         blackboard.bt_loop_duration = self.node.bt_loop_duration
         blackboard.service_cb_group = MutuallyExclusiveCallbackGroup()
@@ -44,9 +47,10 @@ class BehaviourTreeEngine:
         result = NodeStatus.RUNNING
         
         try:
-            tick_time = f'[{self.node.get_clock().now().nanoseconds*1e-9}]'
+            tick_time = self.node.get_clock().now()
+            self.blackboard.tick_time = tick_time
             tree.tick()
-            tree.root.feedback_message =  f'{tick_time}' + tree.root.feedback_message
+            tree.root.feedback_message =  f'[{tick_time.nanoseconds*to_sec}]' + tree.root.feedback_message
             self.node.get_logger().info('\n{}'.format(
                 py_trees.display.unicode_tree(root=tree.root, show_status=True)))
             tree.root.feedback_message = ""
