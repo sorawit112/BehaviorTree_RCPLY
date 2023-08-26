@@ -37,6 +37,7 @@ class BtActionNode(Behaviour, ABC):
         self.blackboard.register_key('node', access=Access.READ, required=True)
         self.blackboard.register_key('bt_loop_duration', access=Access.READ, required=True)
         self.blackboard.register_key('action_cb_group', access=Access.READ, required=True)
+        self.blackboard.register_key('tick_time', access=Access.READ, required=True)
         
         self.node: Node = self.blackboard.node
         self.action_topic: str = action_topic
@@ -54,7 +55,16 @@ class BtActionNode(Behaviour, ABC):
         self.action_feedback: typing.Optional[ActionFeedback] = None
         self.get_result_future: typing.Optional[rclpy.Future] = None
         self.send_goal_future: typing.Optional[rclpy.Future] = None
-        
+    
+    @property
+    def time_from_tick(self):
+        tick_time = self.blackboard.tick_time
+        return (self.node.get_clock().now()- tick_time).nanoseconds*to_sec 
+    
+    @property
+    def bt_timeout(self):
+        return self.bt_loop_duration - self.time_from_tick
+    
     def setup(self):
         self.action_client = ActionClient(
             self.node,
@@ -86,6 +96,9 @@ class BtActionNode(Behaviour, ABC):
         self.status = Status.INVALID
     
     def update(self) -> Status:
+        if self.bt_timeout < 0:
+            self.feedback_message = "bt_timeout wait for next tick"
+            return self.status #return current status because it was not execute any things
         
         if self.status == Status.INVALID:
             should_sent_goal, self.goal = self.on_update()
@@ -93,12 +106,12 @@ class BtActionNode(Behaviour, ABC):
             if not should_sent_goal:
                 return Status.FAILURE
             self.send_new_goal()
-            
+                    
         try:
             if self.send_goal_future:
                 elapsed_time = (self.node.get_clock().now() - self.sent_time).nanoseconds*to_sec
                 remaining_time = self.send_goal_timeout - elapsed_time
-                timeout = remaining_time if self.bt_loop_duration > remaining_time else self.bt_loop_duration
+                timeout = remaining_time if self.bt_timeout > remaining_time else self.bt_timeout
                 if not self.is_send_goal_future_complete(elapsed_time, timeout):
                     elapsed_time += timeout
                     if elapsed_time < self.send_goal_timeout:
@@ -112,7 +125,7 @@ class BtActionNode(Behaviour, ABC):
             
             elapsed_time = (self.node.get_clock().now() - self.sent_time).nanoseconds*to_sec
             remaining_time = self.server_timeout - elapsed_time
-            timeout = remaining_time if self.bt_loop_duration > remaining_time else self.bt_loop_duration
+            timeout = remaining_time if self.bt_timeout > remaining_time else self.bt_timeout
                 
             if rclpy.ok() and not self.get_result_future.done():
                 self.on_wait_for_result(self.action_feedback)
@@ -126,7 +139,6 @@ class BtActionNode(Behaviour, ABC):
                 if elapsed_time < self.server_timeout:
                     return Status.RUNNING
                 else:
-                    
                     self.feedback_message = "timeout while waiting for result"
                     return Status.FAILURE
                 
@@ -229,6 +241,9 @@ class BtActionNode(Behaviour, ABC):
         pass
     
     def terminate(self, new_status: Status) -> None:
+        if new_status == Status.INVALID:
+            self.feedback_message = ""
+            
         if self.should_cancel_goal():
             # action_server always cancel accepted 
             self.goal_handle.cancel_goal_async()

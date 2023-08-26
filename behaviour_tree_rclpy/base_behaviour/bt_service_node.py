@@ -29,6 +29,7 @@ class BtServiceNode(Behaviour, ABC):
         self.blackboard.register_key('node', access=Access.READ, required=True)
         self.blackboard.register_key('bt_loop_duration', access=Access.READ, required=True)
         self.blackboard.register_key('service_cb_group', access=Access.READ, required=True)
+        self.blackboard.register_key('tick_time', access=Access.READ, required=True)
         
         self.node: Node = self.blackboard.node
         self.service_type: SrvType = service_type
@@ -40,6 +41,15 @@ class BtServiceNode(Behaviour, ABC):
         self.sent_time: typing.Optional[Time] = None
         self.request_sent: bool = False
         self.future_result: typing.Optional[rclpy.Future] = None
+    
+    @property
+    def time_from_tick(self):
+        tick_time = self.blackboard.tick_time
+        return (self.node.get_clock().now()- tick_time).nanoseconds*to_sec 
+    
+    @property
+    def bt_timeout(self):
+        return self.bt_loop_duration - self.time_from_tick
         
     def setup(self):
         self.service_client = self.node.create_client(self.service_type, 
@@ -61,6 +71,10 @@ class BtServiceNode(Behaviour, ABC):
         self.future_result = None
     
     def update(self) -> Status:
+        if self.bt_timeout < 0:
+            self.feedback_message = "bt_timeout wait for next tick"
+            return self.status #return current status because it was not execute any things
+        
         if not self.request_sent:
             should_sent_request, request = self.on_update()
             
@@ -90,7 +104,7 @@ class BtServiceNode(Behaviour, ABC):
         remaining_time = self.server_timeout - elapsed_time
         
         if remaining_time > 0:
-            timeout = remaining_time if self.bt_loop_duration > remaining_time else self.bt_loop_duration
+            timeout = remaining_time if self.bt_timeout > remaining_time else self.bt_timeout
             self.node.executor.spin_once(timeout)
             if self.future_result.done():
                 self.request_sent = False
@@ -117,4 +131,6 @@ class BtServiceNode(Behaviour, ABC):
         self.feedback_message = f"wait for result : {feedback_message}"
     
     def terminate(self, new_status: Status) -> None:
+        if new_status == Status.INVALID:
+            self.feedback_message = ""
         return super().terminate(new_status)    
