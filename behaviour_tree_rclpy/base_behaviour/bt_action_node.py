@@ -5,13 +5,14 @@ from abc import ABC, abstractmethod
 import rclpy
 from rclpy.time import Time
 from rclpy.node import Node
-from rclpy.action.client import ClientGoalHandle, ActionClient, GoalResponse, CancelResponse, ResultMessage
 from rclpy.callback_groups import CallbackGroup
 
 from action_msgs.msg import GoalStatus
 
 from py_trees.behaviour import Behaviour
 from py_trees.common import Status, Access
+
+from behaviour_tree_rclpy.action.client import ActionClient, ResultMessage, ClientGoalHandle
 
 ActionType = typing.TypeVar('ActionType')
 ActionGoal = typing.TypeVar('ActionGoal')
@@ -27,7 +28,8 @@ class BtActionNode(Behaviour, ABC):
         name: str, 
         action_topic: str, 
         action_type: ActionType,
-        server_timeout: float=5.0,
+        send_goal_timeout: float,
+        server_timeout: float,
     ):
         super().__init__(name)
         
@@ -40,12 +42,13 @@ class BtActionNode(Behaviour, ABC):
         self.action_topic: str = action_topic
         self.action_type: ActionType = action_type
         self.bt_loop_duration: float = self.blackboard.bt_loop_duration * self.loop_safty_factor
+        self.send_goal_timeout:float = send_goal_timeout
         self.server_timeout: float = server_timeout
         self.cb_group: CallbackGroup = self.blackboard.action_cb_group
         
         self.goal: typing.Optional[ActionGoal] = None
         self.goal_handle: typing.Optional[ClientGoalHandle] = None
-        self.result: typing.Optional[ActionResult] = None
+        self.result: typing.Optional[ResultMessage] = None
         self.sent_time: typing.Optional[Time] = None
         self.result_avaliable: bool = False
         self.action_feedback: typing.Optional[ActionFeedback] = None
@@ -72,12 +75,14 @@ class BtActionNode(Behaviour, ABC):
         self.node.get_logger().info('[{}] BtActionNode initialized'.format(self.name))
         
     def initialise(self) -> None:
-        self.result_avaliable = False
-        self.get_result_future = None
-        self.send_goal_future = None
-        self.action_feedback = None
         self.goal = None
         self.goal_handle = None
+        self.result = None
+        self.sent_time = None
+        self.result_avaliable = False
+        self.action_feedback = None
+        self.get_result_future = None
+        self.send_goal_future = None
         self.status = Status.INVALID
     
     def update(self) -> Status:
@@ -92,18 +97,38 @@ class BtActionNode(Behaviour, ABC):
         try:
             if self.send_goal_future:
                 elapsed_time = (self.node.get_clock().now() - self.sent_time).nanoseconds*to_sec
-                if not self.is_send_goal_future_complete(elapsed_time):
-                    if elapsed_time < self.server_timeout:
+                remaining_time = self.send_goal_timeout - elapsed_time
+                timeout = remaining_time if self.bt_loop_duration > remaining_time else self.bt_loop_duration
+                if not self.is_send_goal_future_complete(elapsed_time, timeout):
+                    elapsed_time += timeout
+                    if elapsed_time < self.send_goal_timeout:
                         return Status.RUNNING
-                self.node.get_logger().warn(
-                    '[{}] Timed out while waiting for {} action server to acknowledge goal request'.format(self.name, self.action_topic))
-                self.send_goal_future = None
-                return Status.FAILURE
+                    
+                    self.node.get_logger().debug(
+                        '[{}] Timed out while waiting for {} action server to acknowledge goal request'.format(self.name, self.action_topic))
+                    self.send_goal_future = None
+                    self.feedback_message = "timeout while waiting for GoalResponse"
+                    return Status.FAILURE
             
+            elapsed_time = (self.node.get_clock().now() - self.sent_time).nanoseconds*to_sec
+            remaining_time = self.server_timeout - elapsed_time
+            timeout = remaining_time if self.bt_loop_duration > remaining_time else self.bt_loop_duration
+                
             if rclpy.ok() and not self.get_result_future.done():
                 self.on_wait_for_result(self.action_feedback)
                 
                 self.action_feedback = None
+            
+                self.node.executor.spin_once(timeout)
+
+            if not self.result_avaliable:
+                elapsed_time += timeout
+                if elapsed_time < self.server_timeout:
+                    return Status.RUNNING
+                else:
+                    
+                    self.feedback_message = "timeout while waiting for result"
+                    return Status.FAILURE
                 
         except RuntimeError as e:
             self.node.get_logger().error('[{}] catch error : {} when tick behaviour'.format(self.name,e))
@@ -112,34 +137,32 @@ class BtActionNode(Behaviour, ABC):
             else:
                 raise RuntimeError(e)
             
-        status = Status.RUNNING
-        
-        if self.result_avaliable:
-            result_message:ResultMessage = self.get_result_future.result()
-            goal_status = result_message.status
-            result = result_message.result
-            if goal_status == GoalStatus.STATUS_SUCCEEDED:
-                status = self.on_success(result)
-            elif goal_status == GoalStatus.STATUS_CANCELED:
-                status = self.on_cancelled(result)
-            elif goal_status == GoalStatus.STATUS_ABORTED:
-                status = self.on_aborted(result)
-            else:
-                self.node.get_logger().error('[{}] invalid GoalStatus:{} after get_result from server'.format(self.name, goal_status))
-                return Status.FAILURE            
+        goal_status = self.result.status
+        result = self.result.result
+        if goal_status == GoalStatus.STATUS_SUCCEEDED:
+            status = self.on_success(result)
+        elif goal_status == GoalStatus.STATUS_CANCELED:
+            status = self.on_cancelled(result)
+        elif goal_status == GoalStatus.STATUS_ABORTED:
+            status = self.on_aborted(result)
+        else:
+            self.node.get_logger().error('[{}] invalid GoalStatus:{} after get_result from server'.format(self.name, goal_status))
+            return Status.FAILURE            
                 
         return status
-        
+    
     def send_new_goal(self):
         self.send_goal_future = self.action_client.send_goal_async(self.goal, feedback_callback=self.feedback_cb)
-    
-    def is_send_goal_future_complete(self, elapsed_time: float):
-        remaining_time = self.server_timeout - elapsed_time
+        self.sent_time = self.node.get_clock().now()
         
-        if remaining_time <= 0:
+    def is_send_goal_future_complete(self, elapsed_time: float, timeout: float):
+        
+        if elapsed_time > self.server_timeout:
+            self.send_goal_future = None
             #server timeout
             return False
         
+        self.node.executor.spin_once(timeout)
         send_goal_exception = self.send_goal_future.exception()
         
         if send_goal_exception:
@@ -159,7 +182,7 @@ class BtActionNode(Behaviour, ABC):
     
     def feedback_cb(self, feedback_msg):
         # goal_id = feedback_msg.goal_id
-        self.feedback_message = feedback_msg.feedback
+        self.action_feedback = feedback_msg.feedback
         
     def result_cb(self, future):
         if self.send_goal_future:
@@ -170,11 +193,12 @@ class BtActionNode(Behaviour, ABC):
         result_message:ResultMessage = future.result()
         
         if self.goal_handle:
-            if self.goal_handle.goal_id == result_message.goal_id:
+            if all(self.goal_handle.goal_id.uuid == result_message.goal_id):
+                self.result = result_message
                 self.result_avaliable = True
             else:
                 self.node.get_logger().warn("[{}] Goal result for {} available, but result goal_id\
-                    not match with current goal handle\n{}:{}".format(self.name, self.action_topic, self.goal_handle.goal_id, result_message.goal_id))
+                    not match with current goal handle\n{}:{}".format(self.name, self.action_topic, self.goal_handle.goal_id.uuid, result_message.goal_id))
                     
     @abstractmethod
     def on_update(self) -> typing.Tuple[bool, ActionGoal]:
@@ -201,7 +225,7 @@ class BtActionNode(Behaviour, ABC):
         return Status.SUCCESS
     
     @abstractmethod
-    def on_wait_for_result(self, ActionFeedback):
+    def on_wait_for_result(self, feedback: ActionFeedback):
         pass
     
     def terminate(self, new_status: Status) -> None:
