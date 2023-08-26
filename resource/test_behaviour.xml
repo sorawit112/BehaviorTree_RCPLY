@@ -4,7 +4,7 @@
     <BehaviorTree ID="BehaviorTree">
         <Fallback name="Fallback 11">
             <Sequence name="Sequence xx">
-                <Action ID="TriggerService" name="TriggerService xy" server_timeout="1.3" service_topic="trigger"/>
+                <Action ID="FibonacciAction" action_topic="fibonacci" order="4" send_goal_timeout="1" server_timeout="5"/>
                 <Action ID="AlwaysRunning" name="AlwaysRunning xz"/>
             </Sequence>
             <Action ID="AlwaysRunning" name="AlwaysRunning aa"/>
@@ -31,6 +31,12 @@
         <Decorator ID="FailureIsRunning"/>
         <Decorator ID="FailureIsSuccess"/>
         <Control ID="FallbackStar"/>
+        <Action ID="FibonacciAction">
+            <input_port name="action_topic">action_server topic</input_port>
+            <input_port name="order">order for put in FibonacciGoal</input_port>
+            <input_port default="1" name="send_goal_timeout">Failure when GoalResponse not returning with in timeout</input_port>
+            <input_port default="5" name="server_timeout">Failure when ActionResult not returning with in timeout</input_port>
+        </Action>
         <Decorator ID="Oneshot">
             <input_port default="true" name="only_success">set to false if oneshot both SUCCESS or FAILURE child</input_port>
         </Decorator>
