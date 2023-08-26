@@ -2,12 +2,13 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <Fallback name="Fallback 11">
-            <Sequence name="Sequence xx">
+        <Fallback>
+            <SequenceStar>
                 <Action ID="FibonacciAction" action_topic="fibonacci" order="4" send_goal_timeout="1" server_timeout="5"/>
-                <Action ID="AlwaysRunning" name="AlwaysRunning xz"/>
-            </Sequence>
-            <Action ID="AlwaysRunning" name="AlwaysRunning aa"/>
+                <Action ID="TriggerService" server_timeout="1" service_topic="trigger"/>
+                <AlwaysFailure/>
+            </SequenceStar>
+            <Action ID="AlwaysRunning"/>
         </Fallback>
     </BehaviorTree>
     <!-- ////////// -->
