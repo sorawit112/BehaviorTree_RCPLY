@@ -50,8 +50,8 @@ class BehaviourTreeNode(Node):
         return False
     
     
-def main():
-    rclpy.init()
+def main(args=None):
+    rclpy.init(args=args)
     
     xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_behaviour.xml'
     node = BehaviourTreeNode(xml)

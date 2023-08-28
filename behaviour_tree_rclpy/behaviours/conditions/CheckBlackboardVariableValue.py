@@ -28,7 +28,8 @@ class CheckBlackboardVariableValue(pyCheckBlackboardVariableValue):
                     if value.lower() in ['true', 'false']:
                         value = bool(value)
                     else:
-                        raise ValueError(f"input string {value} can't convert to type 'Float' or 'Bool'")
+                        # raise ValueError(f"input string {value} can't convert to type 'Float' or 'Bool'")
+                        print('Checking type string')
         
         if isinstance(operator, str):
             try:
