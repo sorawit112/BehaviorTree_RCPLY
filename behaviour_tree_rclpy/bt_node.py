@@ -3,6 +3,7 @@ import rclpy
 from rclpy.task import Future
 from rclpy.node import Node
 from py_trees.common import Status as NodeStatus
+from behaviour_tree_rclpy.bt_engine import BehaviourTreeEngine, BtStatus
 from behaviour_tree_rclpy.behavior_tree_engine import BehaviourTreeEngine, BtStatus
 from behaviour_tree_rclpy.bt_factory import DEFAULT_XML
 from ament_index_python import get_package_share_directory
@@ -53,7 +54,7 @@ class BehaviourTreeNode(Node):
 def main(args=None):
     rclpy.init(args=args)
     
-    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_behaviour.xml'
+    xml = get_package_share_directory('behaviour_tree_rclpy') + '/random_walk_behaviour.xml'
     node = BehaviourTreeNode(xml)
     try:
         rclpy.spin(node)
