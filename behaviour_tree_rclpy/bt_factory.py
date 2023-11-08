@@ -1,6 +1,7 @@
 from ament_index_python.packages import get_package_share_directory
 import typing 
 import xml.etree.ElementTree as ET
+import copy
 
 from py_trees.trees import BehaviourTree
 from py_trees.behaviour import Behaviour
@@ -17,7 +18,7 @@ from behaviour_tree_rclpy.behaviours.decorators import Condition, Count, Failure
 
 DEFAULT_XML = get_package_share_directory('behaviour_tree_rclpy') + '/default_tree.xml'
 
-action_type_mapping = {
+default_action_type_mapping = {
     'AlwaysFailure' : AlwaysFailure.AlwaysFailure,
     'AlwaysRunning' : AlwaysRunning.AlwaysRunning,
     'AlwaysSuccess' : AlwaysSuccess.AlwaysSuccess,
@@ -34,13 +35,13 @@ action_type_mapping = {
     'FibonacciAction' : FibonacciAction.FibonacciAction,
 }
 
-condition_type_mapping = {
+default_condition_type_mapping = {
     'CheckBlackboardVariableExists' : CheckBlackboardVariableExists.CheckBlackboardVariableExists,
     'CheckBlackboardVariableValue' : CheckBlackboardVariableValue.CheckBlackboardVariableValue,
     'SuccessEveryN' : SuccessEveryN.SuccessEveryN
 }
 
-control_type_mapping = {
+default_control_type_mapping = {
     'Fallback' : Fallback.Fallback,
     'FallbackStar' : FallbackStar.FallbackStar,
     'Parallel' : Parallel.Parallel,
@@ -49,7 +50,7 @@ control_type_mapping = {
     'SequenceStar' : SequenceStar.SequenceStar,
 }
 
-decorator_type_mapping = {
+default_decorator_type_mapping = {
     'Condition' : Condition.Condition,
     'Count' : Count.Count,
     'FailureIsRunning' : FailureIsRunning.FailureIsRunning,
@@ -85,10 +86,6 @@ node_type_mapping = {
     'Repeat' : Repeat.Repeat,
     'RetryUntilSuccessful' : RetryUntilSuccessful.RetryUntilSuccessful,
     'Timeout' : Timeout.Timeout,    
-    'Action' : action_type_mapping,
-    'Condition' : condition_type_mapping,
-    'Control' : control_type_mapping,
-    'Decorator' : decorator_type_mapping,
 }
 
 class BehaviourTreeFactory:
@@ -98,65 +95,130 @@ class BehaviourTreeFactory:
     ):
         self.xml_file = xml_file if xml_file else DEFAULT_XML
         
+        self.action_type_mapping = default_action_type_mapping
+        self.control_type_mapping = default_control_type_mapping
+        self.condition_type_mapping = default_condition_type_mapping
+        self.decorator_type_mapping = default_decorator_type_mapping
+        
+        self.node_type_mapping = node_type_mapping
+        self.node_type_mapping['Action'] = self.action_type_mapping
+        self.node_type_mapping['Condition'] = self.condition_type_mapping
+        self.node_type_mapping['Control'] = self.control_type_mapping
+        self.node_type_mapping['Decorator'] = self.decorator_type_mapping
+        
+    def __str__(self):
+        str_ = "****bt_factory behaviors type mapping lists****\n"
+        str_ += "--------- action_type_mapping ----------\n"
+        for key,value in self.action_type_mapping.items():
+            str_ += f"    '{key}' : [{value.__module__}]\n"
+        str_ += "--------- control_type_mapping ----------\n"
+        for key,value in self.control_type_mapping.items():
+            str_ += f"    '{key}' : [{value.__module__}]\n"
+        str_ += "--------- condition_type_mapping ----------\n"
+        for key,value in self.condition_type_mapping.items():
+            str_ += f"    '{key}' : [{value.__module__}]\n"
+        str_ += "--------- decorator_type_mapping ----------\n"
+        for key,value in self.decorator_type_mapping.items():
+            str_ += f"    '{key}' : [{value.__module__}]\n"
+        str_ += "***********************************************\n\n"
+        
+        return str_
+            
+    def add_action_type_mapping(self, key, value):
+        self.action_type_mapping[key] = value
+        
+    def add_control_type_mapping(self, key, value):
+        self.control_type_mapping[key] = value
+        
+    def add_condition_type_mapping(self, key, value):
+        self.condition_type_mapping[key] = value
+        
+    def add_decorator_type_mapping(self, key, value):
+        self.decorator_type_mapping[key] = value
+        
     def registerNodeType(self, node_type:str, **kwargs):
         try:
-            kwargs = kwargs['kwargs']
+            node_attrb = kwargs['node_attrb']
             if node_type in ['Action', 'Condition', 'Control', 'Decorator']:
-                node = node_type_mapping[node_type][kwargs['ID']]
-                node_type = kwargs['ID']
+                node = node_type_mapping[node_type][node_attrb['ID']]
+                node_type = node_attrb['ID']
             else:
                 node = node_type_mapping[node_type]
             return node, node_type
         except KeyError as er:
-            print(er)
+            print(f'KeyError : {er}')
             return None, node_type
         
     def create_node(
         self, 
         xml_element:ET.Element, 
-        sub_trees:dict
+        sub_trees:dict,
+        **kwargs
     ) -> Behaviour:
         node_type = xml_element.tag
         node = None
 
         if node_type == "BehaviorTree":
-            node = self.create_node(xml_element[0], sub_trees)
+            node = self.create_node(xml_element[0], sub_trees, **kwargs)
         elif node_type == "SubTree":
             sub_tree_id = xml_element.get("ID")
             if sub_tree_id in sub_trees:
                 sub_tree_root = sub_trees[sub_tree_id]
-                node = self.create_node(sub_tree_root, sub_trees)
+                node = self.create_node(sub_tree_root, sub_trees, sub_tree_attrib=xml_element.attrib)
             else:
                 raise KeyError(f"sub_tree:{sub_tree_id} not in {sub_trees.keys()}")
         else:
-            node, node_type = self.registerNodeType(node_type, kwargs=xml_element.attrib)
+            node, node_type = self.registerNodeType(node_type, node_attrb=xml_element.attrib)
+            
+            if 'sub_tree_attrib' in kwargs.keys():
+                node_attr = self.remapping_node_attrb_by_sub_tree_attrb(xml_element.attrib, **kwargs)
+            else:
+                node_attr = copy.deepcopy(xml_element.attrib)
             
             children = []
             for child_element in xml_element:
-                child_node = self.create_node(child_element, sub_trees)
+                child_node = self.create_node(child_element, sub_trees, **kwargs)
                 if child_node:
                     children.append(child_node)
-                    
+            
             if len(children) > 0:
-                if node_type in decorator_type_mapping:
-                    return node(children[0], xml_element.attrib)
-                elif node_type in control_type_mapping:
-                    return node(children, xml_element.attrib)
-                elif node_type in action_type_mapping or node_type in condition_type_mapping:
+                if node_type in self.decorator_type_mapping:
+                    return node(children[0], node_attr)
+                elif node_type in self.control_type_mapping:
+                    return node(children, node_attr)
+                elif node_type in self.action_type_mapping or node_type in self.condition_type_mapping:
                     raise ValueError(f"{node_type} can't have child : {children}")
                 else:
                     raise KeyError(f"Can't mapping key:{node_type}")
             else:
-                return node(xml_element.attrib)
+                return node(node_attr)
 
-        return node        
+        return node     
+    
+    def remapping_node_attrb_by_sub_tree_attrb(self, node_attrib:dict, sub_tree_attrib:dict):
+        attr = copy.deepcopy(node_attrib)
+        str_ = ""
+        for key, value in node_attrib.items():
+            if value in sub_tree_attrib.keys():
+                attr[key] = sub_tree_attrib[value]
+                str_ += f"  >> Found remapping attribute in sub_tree_attrb['{value}'] : {sub_tree_attrib[value]}\n"
+                str_ += f"  >> Remapping node_attrib['{key}'] : {value} --> {sub_tree_attrib[value]}\n"
         
+        if str_ != "" and self.debug:
+            str_ = f"-----------{node_attrib.get('ID')}-----------\n" + str_ + '-----------------------------'
+            print(str_)
+        return attr
+           
     def load_behavior_tree_from_xml(
         self, 
-        xml_file_path:typing.Optional[str]=None
+        xml_file_path:typing.Optional[str]=None,
+        debug = False
     ) -> typing.Optional[Behaviour]:
+        self.debug = debug
+        if self.debug:
+            print('load_behavior_tree_from_xml')
         if not xml_file_path:
-            xml_file_path = DEFAULT_XML
+            xml_file_path = self.xml_file
             
         tree = ET.parse(xml_file_path)
         root_element = tree.getroot()
@@ -178,19 +240,20 @@ if __name__=="__main__":
     import py_trees, time
     
     factory = BehaviourTreeFactory()
-    xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_behaviour.xml'
-    behavior_tree_root = factory.load_behavior_tree_from_xml(xml)
+    print(factory)
+    # xml = get_package_share_directory('behaviour_tree_rclpy') + '/test_behaviour.xml'
+    # behavior_tree_root = factory.load_behavior_tree_from_xml(xml)
 
-    py_trees.logging.level = py_trees.logging.Level.DEBUG
+    # py_trees.logging.level = py_trees.logging.Level.DEBUG
     
-    if behavior_tree_root:
-        behavior_tree = BehaviourTree(behavior_tree_root)
-        py_trees.display.render_dot_tree(behavior_tree_root)
-        for i in range(10):
-            print("\n--------- Tick {0} ---------\n".format(i))
-            behavior_tree.tick()
-            print("\n")
-            print(py_trees.display.unicode_tree(root=behavior_tree_root, show_status=True))
-            time.sleep(1.0)
-    else:
-        print("Error: Unable to create behavior tree.")
+    # if behavior_tree_root:
+    #     behavior_tree = BehaviourTree(behavior_tree_root)
+    #     py_trees.display.render_dot_tree(behavior_tree_root)
+    #     for i in range(10):
+    #         print("\n--------- Tick {0} ---------\n".format(i))
+    #         behavior_tree.tick()
+    #         print("\n")
+    #         print(py_trees.display.unicode_tree(root=behavior_tree_root, show_status=True))
+    #         time.sleep(1.0)
+    # else:
+    #     print("Error: Unable to create behavior tree.")

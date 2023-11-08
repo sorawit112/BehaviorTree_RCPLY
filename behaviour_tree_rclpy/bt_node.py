@@ -4,7 +4,6 @@ from rclpy.task import Future
 from rclpy.node import Node
 from py_trees.common import Status as NodeStatus
 from behaviour_tree_rclpy.bt_engine import BehaviourTreeEngine, BtStatus
-from behaviour_tree_rclpy.behavior_tree_engine import BehaviourTreeEngine, BtStatus
 from behaviour_tree_rclpy.bt_factory import DEFAULT_XML
 from ament_index_python import get_package_share_directory
 
