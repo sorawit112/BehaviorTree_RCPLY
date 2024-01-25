@@ -19,15 +19,15 @@ class RetryUntilSuccessful(Retry):
             num_attemps: maximum retry or will return FAILURE
         """
         name: str = attr['name'] if 'name' in attr.keys() else 'RetryUntilSuccessful'
-        num_attemps: typing.Union[str, int] = attr['num_attemps']
-        if isinstance(num_attemps, str):
+        num_attempts: typing.Union[str, int] = attr['num_attempts']
+        if isinstance(num_attempts, str):
             try:
-                num_attemps = int(num_attemps)
+                num_attempts = int(num_attempts)
             except ValueError:
-                raise ValueError(f"input string {num_attemps} can't convert to type 'int'")
-        elif isinstance(num_attemps, (int, float)):
-            num_attemps = int(num_attemps)
+                raise ValueError(f"input string {num_attempts} can't convert to type 'int'")
+        elif isinstance(num_attempts, (int, float)):
+            num_attempts = int(num_attempts)
         else:
-            raise TypeError(f"num_attemps type:{type(num_attemps)} not supported")
+            raise TypeError(f"num_attemps type:{type(num_attempts)} not supported")
         
-        super().__init__(name, child, num_attemps)
+        super().__init__(name, child, num_attempts)
