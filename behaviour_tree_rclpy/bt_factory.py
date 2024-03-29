@@ -2,6 +2,9 @@ from ament_index_python.packages import get_package_share_directory
 import typing 
 import xml.etree.ElementTree as ET
 import copy
+import importlib.util
+import inspect
+import ast
 
 from py_trees.trees import BehaviourTree
 from py_trees.behaviour import Behaviour
@@ -123,6 +126,41 @@ class BehaviourTreeFactory:
         str_ += "***********************************************\n\n"
         
         return str_
+    
+    def load_action_type_from_module(self, package_name):
+        action_module = __import__(package_name).behaviors.Action
+        classes = self.get_exclude_class(action_module)
+        for cls_name, cls in classes:
+            self.add_action_type_mapping(cls_name, cls)
+            
+    def load_condition_type_from_module(self, package_name):
+        condition_module = __import__(package_name).behaviors.Condition
+        
+        classes = self.get_exclude_class(condition_module)
+        for cls_name, cls in classes:
+            self.add_condition_type_mapping(cls_name, cls)
+                    
+    def get_exclude_class(self, module) -> typing.Tuple[str, type]:
+        all_classes = inspect.getmembers(module, inspect.isclass)
+        exclude_class = []
+        
+        spec = importlib.util.find_spec(module.__name__)
+        if spec is None:
+            raise ImportError(f"Module '{module.__name__}' not found")
+
+        with open(spec.origin, 'r') as file:
+            file_content = file.read()
+            tree = ast.parse(file_content)
+
+            # Get imported modules from the file
+            imports = [node.names[0].name for node in ast.walk(tree) if isinstance(node, ast.Import) for alias in node.names]
+            imports.extend([node.module for node in ast.walk(tree) if isinstance(node, ast.ImportFrom)])
+            
+            excluded_classe_name = [node.name for node in ast.walk(tree) if isinstance(node, ast.ClassDef) and node.name not in imports]
+            
+            exclude_class.extend([(cls_name, cls) for cls_name, cls in all_classes if cls_name in excluded_classe_name])
+            
+            return exclude_class
             
     def add_action_type_mapping(self, key, value):
         self.action_type_mapping[key] = value
@@ -164,14 +202,18 @@ class BehaviourTreeFactory:
             sub_tree_id = xml_element.get("ID")
             if sub_tree_id in sub_trees:
                 sub_tree_root = sub_trees[sub_tree_id]
-                node = self.create_node(sub_tree_root, sub_trees, sub_tree_attrib=xml_element.attrib)
+                if 'sub_tree_attrib' in kwargs.keys():
+                    sub_tree_attrib = self.remapping_attrb(xml_element.attrib, **kwargs)
+                else:
+                    sub_tree_attrib = copy.deepcopy(xml_element.attrib)
+                node = self.create_node(sub_tree_root, sub_trees, sub_tree_attrib=sub_tree_attrib)
             else:
                 raise KeyError(f"sub_tree:{sub_tree_id} not in {sub_trees.keys()}")
         else:
             node, node_type = self.registerNodeType(node_type, node_attrb=xml_element.attrib)
             
             if 'sub_tree_attrib' in kwargs.keys():
-                node_attr = self.remapping_node_attrb_by_sub_tree_attrb(xml_element.attrib, **kwargs)
+                node_attr = self.remapping_attrb(xml_element.attrib, **kwargs)
             else:
                 node_attr = copy.deepcopy(xml_element.attrib)
             
@@ -195,7 +237,7 @@ class BehaviourTreeFactory:
 
         return node     
     
-    def remapping_node_attrb_by_sub_tree_attrb(self, node_attrib:dict, sub_tree_attrib:dict):
+    def remapping_attrb(self, node_attrib:dict, sub_tree_attrib:dict):
         attr = copy.deepcopy(node_attrib)
         str_ = ""
         for key, value in node_attrib.items():
