@@ -32,7 +32,7 @@ default_action_type_mapping = {
     'StatusQueue' : StatusQueue.StatusQueue,
     'TickCounter' : TickCounter.TickCounter,
     'Timer' : Timer.Timer,
-    'UnsetBlakboardVariable' : UnsetBlackboardVariable.UnsetBlackboardVariable,
+    'UnsetBlackboardVariable' : UnsetBlackboardVariable.UnsetBlackboardVariable,
     'WaitForBlackboardVariable' : WaitForBlackboardVariable.WaitForBlackboardVariable,
     'TriggerService' : TriggerService.TriggerService,
     'FibonacciAction' : FibonacciAction.FibonacciAction,
