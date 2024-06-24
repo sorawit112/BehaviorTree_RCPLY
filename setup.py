@@ -12,7 +12,6 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name, ['resource/py_tree_nodes.xml']),
         ('share/' + package_name, ['resource/default_tree.xml']),
-        ('share/' + package_name, ['resource/test_behaviour.xml']),
         ('share/' + package_name, ['resource/random_walk_behaviour.xml']),
         ('share/' + package_name, ['resource/following_behaviours.xml'])
     ],
