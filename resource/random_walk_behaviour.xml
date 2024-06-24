@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Decorator ID="SuccessIsRunning">
+            <Fallback>
+                <Action ID="TriggerService" name="random_walk" server_timeout="1000000" service_topic="random_walk"/>
+                <Action ID="AlwaysRunning"/>
+            </Fallback>
+        </Decorator>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Action ID="AlwaysRunning"/>
+        <Action ID="BlackboardToStatus">
+            <input_port name="variable_name">Reflects a Status stored in a blackboard variable</input_port>
+        </Action>
+        <Condition ID="CheckBlackboardVariableExists">
+            <input_port name="variable_name">name of the variable look for, may be nested</input_port>
+        </Condition>
+        <Condition ID="CheckBlackboardVariableValue">
+            <input_port default="=" name="operator">support operator are =, !=,  &gt;, &gt;=, &lt;, &lt;= </input_port>
+            <input_port name="value">value to compare against</input_port>
+            <input_port name="variable_name">name of the variable to compare</input_port>
+        </Condition>
+        <Decorator ID="Condition">
+            <input_port name="status">the desired status to set as SUCCESS</input_port>
+        </Decorator>
+        <Decorator ID="Count"/>
+        <Decorator ID="FailureIsRunning"/>
+        <Decorator ID="FailureIsSuccess"/>
+        <Control ID="FallbackStar"/>
+        <Action ID="FibonacciAction">
+            <input_port name="action_topic">action_server topic</input_port>
+            <input_port name="order">order for put in FibonacciGoal</input_port>
+            <input_port default="1" name="send_goal_timeout">Failure when GoalResponse not returning with in timeout</input_port>
+            <input_port default="5" name="server_timeout">Failure when ActionResult not returning with in timeout</input_port>
+        </Action>
+        <Decorator ID="Oneshot">
+            <input_port default="true" name="only_success">set to false if oneshot both SUCCESS or FAILURE child</input_port>
+        </Decorator>
+        <Control ID="ParallelPolicy">
+            <input_port default="SuccessOnAll" name="policy">'SuccessOnAll', 'SuccessOnOne', 'SuccessOnSelected'</input_port>
+            <input_port name="selected_child">child index(start with 0) to selected in policy 'SuccessOnSelected'</input_port>
+        </Control>
+        <Decorator ID="PassThrough"/>
+        <Action ID="Periodic">
+            <input_port name="n">period value (in ticks)</input_port>
+        </Action>
+        <Decorator ID="RunningIsFailure"/>
+        <Decorator ID="RunningIsSuccess"/>
+        <Action ID="SetBlackboardVariable">
+            <input_port default="true" name="overwrite">when False, do not set the variable if it already exists</input_port>
+            <input_port name="variable_name"> name of the variable to set</input_port>
+            <input_port name="variable_value">value of the variable to set</input_port>
+        </Action>
+        <Action ID="StatusQueue">
+            <input_port name="eventually">status to use eventually, None to re-cycle the sequence</input_port>
+            <input_port name="queue">list of status values to cycle through</input_port>
+        </Action>
+        <Decorator ID="StatusToBlackboard">
+            <input_port name="variable_name">variable_name to assign STATUS value</input_port>
+        </Decorator>
+        <Condition ID="SuccessEveryN">
+            <input_port name="n">trigger success on every n'th tick</input_port>
+        </Condition>
+        <Decorator ID="SuccessIsFailure"/>
+        <Decorator ID="SuccessIsRunning"/>
+        <Action ID="TickCounter">
+            <input_port name="completion_status">status to switch to once the counter has expired</input_port>
+            <input_port name="duration">number of ticks to run</input_port>
+        </Action>
+        <Action ID="Timer">
+            <input_port default="5.0" name="duration">length of time to run (in seconds)</input_port>
+        </Action>
+        <Action ID="TriggerService">
+            <input_port default="1" name="server_timeout">time to set Failure if server not response within</input_port>
+            <input_port name="service_topic">service topic to send Trigger.srv</input_port>
+        </Action>
+        <Action ID="UnsetBlackboardVariable">
+            <input_port name="key">unset this key-value pair</input_port>
+        </Action>
+        <Action ID="WaitForBlackboardVariable">
+            <input_port name="variable_name">name of the variable to wait for</input_port>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>
