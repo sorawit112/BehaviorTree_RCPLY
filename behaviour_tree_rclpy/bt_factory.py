@@ -11,7 +11,7 @@ from py_trees.behaviour import Behaviour
 from behaviour_tree_rclpy.behaviours.actions import AlwaysFailure, \
     AlwaysRunning, AlwaysSuccess, BlackboardToStatus, Periodic, \
     SetBlackboard, SetBlackboardVariable, StatusQueue, TickCounter, \
-    Timer, UnsetBlackboardVariable, WaitForBlackboardVariable, TriggerService, FibonacciAction
+    Timer, UnsetBlackboardVariable, WaitForBlackboardVariable, TriggerService
 from behaviour_tree_rclpy.behaviours.conditions import CheckBlackboardVariableExists, CheckBlackboardVariableValue, SuccessEveryN
 from behaviour_tree_rclpy.behaviours.controls import Fallback, FallbackStar, Parallel, ParallelPolicy, Sequence, SequenceStar
 from behaviour_tree_rclpy.behaviours.decorators import Condition, Count, FailureIsRunning, FailureIsSuccess, \
@@ -35,7 +35,6 @@ default_action_type_mapping = {
     'UnsetBlackboardVariable' : UnsetBlackboardVariable.UnsetBlackboardVariable,
     'WaitForBlackboardVariable' : WaitForBlackboardVariable.WaitForBlackboardVariable,
     'TriggerService' : TriggerService.TriggerService,
-    'FibonacciAction' : FibonacciAction.FibonacciAction,
 }
 
 default_condition_type_mapping = {

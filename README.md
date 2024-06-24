@@ -10,7 +10,7 @@
 
 - Providing PyTree Behaviours supported in Groot Interface
 - Providing `rclpy` **service_client** and **action_client** Behaviours that can operate in PyTree
-- There are two rclpy interface behaviours example in package **FibonacciAction** which is the client of Fibonacci.action and **TriggerService** which is the client of Trigger.srv 
+- There are rclpy interface behaviours example in package **TriggerService** which is the client of Trigger.srv 
 - Automatically convert behavior trees from BehaviorTreeCpp-compatible XML format to PyTree 
 - Generate ROS 2 nodes from the converted XML behavior trees.
 
@@ -104,7 +104,7 @@ The repository as a default is providing the example that you can run by follow 
 ## Create new rclpy Behaviour
 
 **The tutorial step not avaliable yet but try to follow this guiding.**
-Create your own rclpy action_client or service_client behaviour by see the example of FibonacciAction or TriggerService for implementation, then don't forget to add your Behaviour in bt_factory and create new Groot Interface Block by adding `new custom nodes` that link with your own behaviour name.
+Create your own rclpy action_client or service_client behaviour by see the example of TriggerService for implementation, then don't forget to add your Behaviour in bt_factory and create new Groot Interface Block by adding `new custom nodes` that link with your own behaviour name.
 # Collaboration
 
 If you happen to come across any errors, please don't hesitate to either create a pull request or open an issue. Your assistance is highly appreciated, and I'll do my best to respond promptly. Thank you for your understanding and collaboration!
