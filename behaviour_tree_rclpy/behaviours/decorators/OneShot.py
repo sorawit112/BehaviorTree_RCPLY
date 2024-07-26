@@ -1,5 +1,5 @@
 import typing
-from py_trees.common import OneShotPolicy
+from py_trees.common import OneShotPolicy, Status
 from py_trees.behaviour import Behaviour
 from py_trees.decorators import OneShot as pyOneShot
 
@@ -27,3 +27,18 @@ class OneShot(pyOneShot):
             policy = OneShotPolicy.ON_COMPLETION
             
         super().__init__(name, child, policy)
+    
+    def terminate(self, new_status: Status) -> None:
+        """
+        Prevent further entry if finishing with :data:`~py_trees.common.Status.SUCCESS`.
+
+        This uses a flag to register that the behaviour has gone through to completion.
+        In future ticks, it will block entry to the child and just return the original
+        status result.
+        """
+        super().terminate(new_status)
+        
+        if new_status == Status.INVALID:
+            self.feedback_message = "reset final_status"
+            self.final_status = None
+            
