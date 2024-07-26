@@ -23,7 +23,7 @@ class ParallelPolicy(Parallel):
                 if policy == 'SuccessOnSelected':
                     try:
                         selected_child_ = [int(v.replace(' ', '')) for v in selected_child.split(',')]   
-                        selected_child_ = [children[i] for i in range(len(children)) if i in [selected_child_]]
+                        selected_child_ = [children[i] for i in range(len(children)) if i in selected_child_]
                     except:
                         raise RuntimeError(f"error in decoding selected_child:{selected_child} from string to List[Behaviour]")
                     policy = policy_mapping[policy](children=selected_child_)
